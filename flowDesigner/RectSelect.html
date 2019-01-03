@@ -1,0 +1,40 @@
+<html>
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=gbk">
+  <title>拉框</title>
+  <link href="css/jquery.ui.resizable.css" rel="stylesheet" />
+  <link rel="stylesheet" href="easyui.css">
+  <style type="text/css">
+    .ui-draggable-border {
+      background: transparent;
+      position: absolute;
+      z-index: 100001;
+      cursor: move;
+    }
+  </style>
+
+</head>
+
+<body>
+  <div id="BottomRightCenterContentDiv" onmousedown="down(event)" onmouseup="up(event)" onmousemove="move(event)" style="left: 260px; width: 850px; height: 480px; visibility: visible; border: solid 1px blue;/*position:relative*/">
+    <div id="div1" style="width: 120px; height: 120px; background-color: #b6ff00; left: 50px; top: 20px; position: absolute;"></div>
+    <div id="div2" style="width: 120px; height: 120px; background-color: #FF99FF; left: 200px; top: 200px; position: absolute;"></div>
+    <div id="div3" style="width: 120px; height: 120px; background-color: #ffd800; left: 20px; top: 300px; position: absolute;"></div>
+    <div id="div4" style="width: 120px; height: 120px; background-color: #ffd800; left: 420px; top: 60px; position: absolute;"></div>
+    <div id="div5" style="width: 120px; height: 120px; background-color: #871c1c; left: 620px; top: 240px; position: absolute;"></div>
+    <div id="div6" style="width: 120px; height: 120px; background-color: #16DACA; left: 420px; top: 330px; position: absolute;"></div>
+    <div id="div7" style="width: 120px; height: 120px; background-color: #b200ff; left: 660px; top: 70px; position: absolute;"></div>
+
+    <div id="rect" style="position: absolute; background-color: rgb(195, 213, 237); opacity: 0.6; border: 1px dashed rgb(0, 153, 255); display: none;">
+    </div>
+  </div>
+  <script src="Public/js/jquery-1.7.2.min.js"></script>
+  <!-- <script src="Public/js/jquery-ui/jquery-ui-1.9.2-min.js"></script> -->
+  <!-- <script src="js/jquery.js"></script> -->
+  <script src="jquery.easyui.min.js"></script>
+  <script src="RectSelect.js"></script>
+
+</body>
+
+</html>

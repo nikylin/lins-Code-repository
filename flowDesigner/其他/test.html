@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+  <meta charset="UTF-8">
+  <title></title>
+  <link rel="stylesheet" href="Public/css/bootstrap/css/bootstrap.css" />
+  <link rel="stylesheet" href="js/jquery-ui-1.12.1.dropable/jquery-ui.css" />
+  <script src="Public/js/jquery-1.7.2.min.js"></script>
+  <script src="Public/css/bootstrap/js/bootstrap.js" />
+  <script>
+    jQuery.noConflict();　　//解决jQuery控制权冲突问题
+  </script>
+  <script src="Public/js/jquery-ui/jquery-ui-1.9.2-min.js"></script>
+  <style>
+    .selectable .ui-selecting {
+      background: #FECA40;
+    }
+
+    .selectable .ui-selected {
+      background: #F39814;
+      color: white;
+    }
+
+    .selectable {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      width: 80%;
+    }
+
+    .selectable li {
+      list-style: none;
+      margin: 3px;
+      padding: 0.4em;
+      font-size: 1.4em;
+      height: 32px;
+      moz-user-select: -moz-none;
+      -moz-user-select: none;
+      -o-user-select: none;
+      -khtml-user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .drag_info_box {
+      width: 40px;
+      height: 40px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 40px;
+      background: #21aeff;
+      color: #000000;
+    }
+  </style>
+  <script>
+    $(function () {
+
+
+      //自定义多选方法
+      var selected_begin_index, selected_end_index;
+      $("#mydrag").on("mousedown", ".selectable>li", function (e) {
+
+        var _selectable = $(this).parent();
+        if (!e.ctrlKey && !e.shiftKey) { //没有按下Ctrl或Shift键
+          if (!$(this).hasClass("ui-selected")) {
+            _selectable.children("li").removeClass("ui-selected");
+          }
+          $(this).addClass("ui-selected");
+          selected_begin_index = _selectable.children("li").index(this);
+
+        } else if (e.ctrlKey && !e.shiftKey) { //只按下Ctrl键
+          $(this).addClass("ui-selected");
+          selected_begin_index = _selectable.children("li").index(this);
+        } else if ((!e.ctrlKey && e.shiftKey) || (e.ctrlKey && e.shiftKey)) { //只按下Shift键或Ctrl和Shift键都按下
+          _selectable.children("li").removeClass("ui-selected");
+          $(this).addClass("ui-selected");
+
+          if (selected_begin_index != undefined) {
+            selected_end_index = _selectable.children("li").index(this);
+          } else {
+            selected_begin_index = _selectable.children("li").index(this);
+          }
+
+          if (selected_end_index >= selected_begin_index) {
+            for (var i = selected_begin_index; i <= selected_end_index; i++) {
+              _selectable.children("li").eq(i).addClass("ui-selected");
+            }
+          } else {
+            for (var i = selected_end_index; i <= selected_begin_index; i++) {
+              _selectable.children("li").eq(i).addClass("ui-selected");
+            }
+          }
+
+        }
+      }).on("mouseup", ".selectable>li", function (e) {
+        var _selectable = $(this).parent();
+        if (!e.ctrlKey && !e.shiftKey) { //没有按下Ctrl或Shift键
+          _selectable.children("li").removeClass("ui-selected");
+          $(this).addClass("ui-selected");
+
+        }
+      });
+
+      //调用拖拽事件并重新规划处理方式
+      $("#mydrag .selectable>li").draggable({
+        revert: "invalid",
+        containment: "document",
+        cursor: "default",
+        distance: 10,
+        zIndex: 9,
+        opacity: 0.5,
+        cursorAt: {
+          left: 20,
+          top: 40
+        },
+        connectToSortable: "#mydrag .sample-group>ol",
+        helper: function (event, ui) {
+          var drag_info_box = $("<div></div>").addClass("drag_info_box");
+          drag_info_box.append($("<span></span>"));
+          drag_info_box.append($('<input type="hidden" />'));
+          return drag_info_box;
+        },
+        start: function (event, ui) {
+          var _drag_ele = ui.helper;
+          _drag_ele.children("span").eq(0).text($("#mydrag .selectable>li.ui-selected").length);
+          var selected_li_seq = "";
+          $("#mydrag .selectable>li.ui-selected").each(function () {
+            selected_li_seq += $("#mydrag .selectable>li").index(this) + ",";
+          });
+          _drag_ele.children("input").eq(0).val(selected_li_seq.substr(0, selected_li_seq.length - 1));
+        },
+        stop: function (event, ui) {
+          $(".selectable li").removeClass("ui-selected");
+        }
+      });
+
+
+      $("#mydrag .sample-group>ol").droppable({
+        activeClass: "ui-state-highlight",
+        drop: function (event, ui) {
+          //这块如果是拖放到排序面板会执行两次,将该内容放到排序的stop方法中
+        }
+      });
+
+      //排序完毕后执行真正的释放操作
+      $("#mydrag .sample-group>ol").sortable({
+        revert: true,
+        stop: function (event, ui) {
+
+          if (ui.item.hasClass("drag_info_box")) {
+            var selected_li_arr = ui.item.children("input").eq(0).val().split(',');
+            for (var i = 0; i < selected_li_arr.length; i++) {
+              var _group_li_ = $("<li></li>")
+                .addClass("ui-state-highlight ui-sortable-handle").text($("#mydrag .selectable>li").eq(
+                  selected_li_arr[i]).text());
+              //为该元素打上上传标签
+              $("#mydrag .selectable>li").eq(selected_li_arr[i]).addClass("delete_flag")
+              $(".drag_info_box").before(_group_li_);
+            }
+          }
+          $("#mydrag .selectable>li.delete_flag").remove();
+          $(".drag_info_box").remove();
+          $(this).sortable();
+        }
+      }).disableSelection();
+
+
+    });
+  </script>
+</head>
+
+<body>
+
+  <div id="mydrag" style="width:1200px;height: auto;">
+    <div class="col-sm-4" style="background: #eeeeee">
+      <ol class="selectable">
+        <li class="ui-widget-content">Item 1</li>
+        <li class="ui-widget-content">Item 2</li>
+        <li class="ui-widget-content">Item 3</li>
+        <li class="ui-widget-content">Item 4</li>
+        <li class="ui-widget-content">Item 5</li>
+        <li class="ui-widget-content">Item 6</li>
+        <li class="ui-widget-content">Item 7</li>
+      </ol>
+    </div>
+    <div class="col-sm-4" style="background: greenyellow">
+      <div class="sample-groups">
+        <div class="sample-group" style="min-height: 80px;">
+          <ol>
+            <li class="ui-state-highlight">Item 1</li>
+            <li class="ui-state-highlight">Item 2</li>
+            <li class="ui-state-highlight">Item 3</li>
+            <li class="ui-state-highlight">Item 4</li>
+            <li class="ui-state-highlight">Item 5</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-4" style="background: green">
+      <div class="row">
+        <div style="background: #ffff00"></div>
+        <div class="col-sm-5" style="background: blue"></div>
+        <div class="col-sm-2" style="background: red"></div>
+        <div class="col-sm-5" style="background: purple"></div>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>

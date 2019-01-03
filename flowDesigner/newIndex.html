@@ -1,0 +1,214 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <title>流程设计器</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <link href="Public/css/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" />
+  <!--[if lte IE 6]>
+    <link rel="stylesheet" type="text/css" href="Public/css/bootstrap/css/bootstrap-ie6.css">
+    <![endif]-->
+  <!--[if lte IE 7]>
+    <link rel="stylesheet" type="text/css" href="Public/css/bootstrap/css/ie.css">
+    <![endif]-->
+  <link href="Public/css/site.css" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" type="text/css" href="Public/js/flowdesign/flowdesign.css" media="screen" />
+  <style>
+    .jsplumb-endpoint{z-index: 100;width: 20px !important;height: 20px !important;}
+      .jsplumb-connector {
+          z-index: 4;
+      }
+      .seled.process-step{border:1px solid #ff6000;background-color:#666;}
+      .ui-draggable-border {
+          background: transparent;
+          position: absolute;
+          z-index: 100001;
+          cursor: move;
+      }
+  </style>
+</head>
+
+<body>
+  <!-- fixed navbar -->
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="pull-right">
+          <button class="btn btn-info" type="button" id="leipi_save">保存设计</button>
+          <button class="btn btn-danger" type="button" id="leipi_clear">清空连接</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--contextmenu div-->
+  <div id="processMenu" style="display:none;">
+    <ul>
+      <li id="copy"><i class="icon-check"></i>&nbsp;<span class="_label">复制</span></li>
+      <li id="delete"><i class="icon-trash"></i>&nbsp;<span class="_label">删除</span></li>
+    </ul>
+  </div>
+  <div id="canvasMenu" style="display:none;">
+    <ul>
+      <li id="add"><i class="icon-plus"></i>&nbsp;<span class="_label">添加步骤</span></li>
+      <li id="save"><i class="icon-ok"></i>&nbsp;<span class="_label">保存设计</span></li>
+      <li id="refresh"><i class="icon-refresh"></i>&nbsp;<span class="_label">刷新 F5</span></li>
+      <li id="paste"><i class="icon-share"></i>&nbsp;<span class="_label">粘贴</span></li>
+    </ul>
+  </div>
+  <!--end div-->
+  <div class="container mini-layout" id="flowdesign_canvas">
+    <div id="rect" style="position: absolute; background-color: rgb(195, 213, 237); opacity: 0.6; border: 1px dashed rgb(0, 153, 255);z-index: 2000; display: none;cursor: move">
+    </div>
+  </div>
+  <!-- /container -->
+</body>
+
+</html>
+<script type="text/javascript" src="Public/js/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="Public/js/jquery-ui/jquery-ui-1.9.2-min.js"></script>
+<script type="text/javascript" src="Public/js/jquery-easyui-1.6.3/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="Public/js/RectSelect/RectSelect.js"></script>
+<script type="text/javascript" src="Public/js/jsPlumb/jsplumb-2.0.0/dist/js/jsPlumb-2.0.0-min.js"></script>
+<script type="text/javascript" src="Public/js/jquery.contextmenu.r2.js"></script>
+<script type="text/javascript" src="Public/js/flowdesign/leipi.flowdesign.v3.new.js"></script>
+<script type="text/javascript">
+  $(function () {
+    var contextMenuAlign = {
+      mtop: 0,
+      mLeft: 0
+    };
+
+    /*
+    php 命名习惯 单词用下划线_隔开
+    js 命名习惯：首字母小写 + 其它首字线大写
+    */
+    /*步骤数据*/
+    var processData = {
+      "total": 2,
+      "list": {
+        "10001": {
+          "id": "10001", //当前步骤ID
+          "flow_id": "8", //所属流程ID
+          "process_name": "填写表单", //步骤名称
+          "process_to": "10002", //下一步 多个用 逗号隔开
+          "icon": "icon-play", //图标
+          "style": "left:183px;top:68px;color:#0e76a8;" //样式
+        },
+        "10002": {
+          "id": "10002",
+          "flow_id": "8",
+          "icon": "icon-plane",
+          "process_name": "部门主管审批",
+          "process_to": "10003",
+          "style": "left:133px;top:184px;width:200px;height:30px"
+        },
+        "10003": {
+          "id": "10003",
+          "flow_id": "8",
+          "icon": "icon-star-empty",
+          "process_name": "老板审批",
+          "process_to": "0",
+          "style": "left:133px;top:338px;width:200px;height:50px"
+        }
+      }
+    };
+    /*创建流程设计器*/
+    var _canvas = $("#flowdesign_canvas").Flowdesign({
+      "processData": processData,
+      /*画面右键*/
+      canvasMenus: {
+        "add": function (t) {
+          var mLeft = contextMenuAlign.mLeft,
+            mTop = contextMenuAlign.mtop;
+          var style = "width:121px;height:41px;line-height:41px;color:#0e76a8;left:" + mLeft + "px;top:" +
+            mTop +
+            "px;";
+          var row = {
+            "flow_id": "8",
+            "aaaa": "proce",
+            "process_to": "",
+            "process_name": "新建工序",
+            "icon": "icon-ok",
+            "style": style
+          };
+          _canvas.addProcess(row);
+        },
+        "save": function (t) {
+          var processInfo = JSON.stringify(_canvas.getProcessInfo().data); //连接信息
+          alert(processInfo);
+        },
+        //刷新
+        "refresh": function (t) {
+          _canvas.refresh();
+        },
+        "paste": function (t) {
+          _canvas.paste();
+        }
+      },
+      /*步骤右键*/
+      processMenus: {
+        "copy": function (t) {
+          _canvas.copy();
+          // copyHandler();
+        },
+        "delete": function (t) {
+          var activeId = _canvas.getActiveId(); //右键当前的ID
+          _canvas.delProcess(activeId);
+          alert("删除:" + activeId);
+        }
+      },
+      fnRepeat: function () {
+        alert("步骤连接重复了，请重新连接"); //可使用 jquery ui 或其它方式提示
+      },
+      fnClick: function () {
+        // alert("单击了节点");
+      },
+      // fnDbClick: function (event) {
+      //   $(event.currentTarget).find(".process-label").attr("contentEditable", true);
+      //   // alert("双击了节点");
+      // }
+    });
+
+    // function copyHandler() {
+    //   var activeId = _canvas.getActiveId(); //右键当前的ID
+    //   _canvas.copy(activeId); //右键当前的ID
+    //   console.log("复制成功");
+    // }
+
+    // function pasteHandler() {
+    //   var pasteId = $("#leipi_copy_id").val();
+    //   if (pasteId <= 0) {
+    //     alert("你未复制任何步骤");
+    //     return;
+    //   } else {
+    //     _canvas.paste(row_id);
+    //     row_id++;
+    //   }
+    // }
+
+
+    /*保存*/
+    $("#leipi_save").bind('click', function () {
+      var processInfo = JSON.stringify(_canvas.getProcessInfo().data); //连接信息
+      alert(processInfo);
+    });
+    /*清除*/
+    $("#leipi_clear").bind('click', function () {
+      if (_canvas.clear()) {
+        alert("清空连接成功，你可以重新连接");
+      } else {
+        alert("清空连接失败");
+      }
+    });
+
+
+    $("#add").bind("click", function () {
+      var contextObj = $("#jqContextMenu")[0];
+      contextMenuAlign.mtop = contextObj.offsetTop;
+      contextMenuAlign.mLeft = contextObj.offsetLeft;
+    });
+  });
+</script>
